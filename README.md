@@ -1,3 +1,7 @@
+# Fork
+This repo was forked from https://github.com/deviantony/docker-elk.
+The repo was simplified to manage only Elasticsearch and Kibana
+
 ## Requirements
 
 ### Host setup
@@ -44,21 +48,51 @@ $ docker-compose exec -T elasticsearch bin/elasticsearch-setup-passwords auto --
 ```
 
 Passwords for all 6 built-in users will be randomly generated. Take note of them and replace the `elastic` username with
-`kibana` and `logstash_system` inside the Kibana and Logstash configuration files respectively. See the
+`kibana` inside the Kibana configuration files respectively. See the
 [Configuration](#configuration) section below.
 
-> :information_source: Do not use the `logstash_system` user inside the Logstash *pipeline* file, it does not have
-> sufficient permissions to create indices. Follow the instructions at [Configuring Security in Logstash][ls-security]
-> to create a user with suitable roles.
-
-Restart Kibana and Logstash to apply the passwords you just wrote to the configuration files.
+Restart Kibana to apply the passwords you just wrote to the configuration files.
 
 ```console
-$ docker-compose restart kibana logstash
+$ docker-compose restart kibana
 ```
 
 > :information_source: Learn more about the security of the Elastic stack at [Tutorial: Getting started with
 > security][sec-tutorial].
+
+## Extensibility
+
+### How to add plugins
+
+To add plugins to any ELK component you have to:
+
+1. Add a `RUN` statement to the corresponding `Dockerfile` (eg. `RUN logstash-plugin install logstash-filter-json`)
+2. Add the associated plugin code configuration to the service configuration (eg. Logstash input/output)
+3. Rebuild the images using the `docker-compose build` command
+
+### Swarm mode
+
+Experimental support for Docker [Swarm mode][swarm-mode] is provided in the form of a `docker-stack.yml` file, which can
+be deployed in an existing Swarm cluster using the following command:
+
+```console
+$ docker stack deploy -c docker-stack.yml elk
+```
+
+If all components get deployed without any error, the following command will show 3 running services:
+
+```console
+$ docker stack services elk
+```
+
+> :information_source: To scale Elasticsearch in Swarm mode, configure *zen* to use the DNS name `tasks.elasticsearch`
+instead of `elasticsearch`.
+
+## Head plugin
+
+
+> github: https://github.com/mobz/elasticsearch-head
+> chrome extension: https://chrome.google.com/webstore/detail/elasticsearch-head/ffmkiejjmecolpfloofpjologoblkegm
 
 ## for more information see:
 
